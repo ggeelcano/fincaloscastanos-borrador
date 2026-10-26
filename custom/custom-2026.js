@@ -73,6 +73,11 @@
     return base + 'custom/granos-2026-tile' + sufijo + '-' + alto + '.webp';
   }
 
+  // (26-oct) Elena: "quitar completamente la cascara de la primera pagina". La banda
+  // .gg-beans-band ya no esta en el html de las portadas, asi que esta funcion no hace
+  // nada (se conserva por si hay que volver). La portada se reconoce ahora por su foto.
+  function fotoPortada() { return document.querySelector('main img[src*="hero-2026"]'); }
+
   function initBeansFade() {
     var band = document.querySelector('.gg-beans-band');
     if (!band) return;
@@ -212,6 +217,9 @@
   //    enormes. Se anaden dos fotos mas siguiendo el orden del texto:
   //    la planta (cultivo) -> el secado -> la cafetera (degustacion).
   function initFotosExperiencia() {
+    // (26-oct) Elena: "esta rama es fea" -> fuera las cerezas en la rama; la columna se
+    // queda solo con el secado y el texto sube. Se conserva el codigo por si hay que volver.
+    return;
     var img = document.querySelector('img[src*="plantation-tour"]');
     if (!img) return;
     var marco = img.parentElement;
@@ -265,13 +273,15 @@
     if (src.indexOf('_astro/') < 0) return;
     var base = src.split('_astro/')[0];
     var lang = (document.documentElement.lang || 'en').slice(0, 2);
-    // (21-sep) la flor del cafeto, muestra de Elena, abre la columna
+    // (21-sep) la flor del cafeto, muestra de Elena, abre la columna.
+    // (26-oct) Elena: fuera la flor ("es ilegal"); en su lugar la casa de la finca
+    // (la foto 33 de la galeria, que sale de alli; ampliada x4 en ronda-26oct/).
     var textos = {
-      es: ['Flor del cafeto', 'Cultivos del Valle de Agaete', 'Plataneras en el valle',
+      es: ['La casa de la finca entre palmeras', 'Cultivos del Valle de Agaete', 'Plataneras en el valle',
            'Cerezas de café recién recogidas'],
-      de: ['Kaffeeblüte', 'Anbau im Valle de Agaete', 'Bananenstauden im Tal',
+      de: ['Das Haus der Finca zwischen Palmen', 'Anbau im Valle de Agaete', 'Bananenstauden im Tal',
            'Frisch geerntete Kaffeekirschen'],
-      en: ['Coffee blossom', 'Crops in the Valle de Agaete', 'Banana plants in the valley',
+      en: ['The finca house among palm trees', 'Crops in the Valle de Agaete', 'Banana plants in the valley',
            'Freshly picked coffee cherries']
     };
     var alt = textos[lang] || textos.en;
@@ -292,7 +302,7 @@
       caja.appendChild(foto);
       return caja;
     }
-    ['exp-flor', 'exp-valle', 'exp-platanos', 'exp-mano']
+    ['exp-casa', 'exp-valle', 'exp-platanos', 'exp-mano']
       .forEach(function (nombre, i) { col.appendChild(nuevoMarco(nombre, alt[i])); });
   }
 
@@ -301,7 +311,7 @@
   // 7) Fuera la galeria de la portada: sus 12 fotos ya estan en "Photo
   //    Gallery", que queda como galeria unica.
   function initSinGaleriaHome() {
-    if (!document.querySelector('.gg-beans-band')) return;   // solo la portada
+    if (!fotoPortada()) return;   // solo la portada
     // La galeria es la unica seccion de la portada con una rejilla de 12 fotos.
     // (Antes se buscaba por el alt "Finca Los Casta..." y eso escondia la
     // seccion "Visitas con encanto", cuya foto del equipo lleva ese mismo alt.)
@@ -392,7 +402,7 @@
     document.documentElement.classList.add('gg-claro');
     try { localStorage.removeItem('gg-tema'); } catch (e) {}
     // la unica cursiva que se conserva en B: el subtitulo del hero de la portada
-    var sub = document.querySelector('.gg-beans-band') &&   // solo en la portada
+    var sub = fotoPortada() &&   // solo en la portada
               document.querySelector('main > section:first-of-type p.font-serif');
     if (sub) sub.classList.add('gg-cursiva-ok');
 
@@ -410,7 +420,7 @@
   //     para que el borde roto quede arriba. Pendiente: foto de granos TOSTADOS
   //     del cliente; cuando llegue se hace su azulejo (panorama-cascara.mjs).
   function initBeansFoot() {
-    var band = document.querySelector('.gg-beans-band');
+    var band = fotoPortada();
     var main = document.querySelector('main');
     if (!band || !main || main.querySelector('.gg-beans-foot')) return;
     var sec = document.createElement('section');
@@ -433,7 +443,7 @@
     // XO_8kk_8x2s, pie-blanco.mjs) con el blanco pasado a transparente: el borde de arriba son los granos
     // enteros con su silueta y su sombra real sobre el color de la web, sin recortar ninguno. El pie recto
     // del 5-oct (tostado-recto-*, css bloque 33) queda en los archivos por si hay que volver.
-    var base = (band.querySelector('img').getAttribute('src') || '').split('custom/')[0];
+    var base = (band.getAttribute('src') || '').split('custom/')[0];
     // 7-oct (2), Josu: 'respeta la linea que han marcado'. Ya no es un azulejo: UNA imagen con la proporcion
     // de la franja de su captura, cuyo borde de granos sigue la raya verde de Elena (pie-natural.mjs: tramos
     // de la foto elegidos por su borde natural, ningun grano cortado). Ocupa el ancho de la pantalla.
@@ -455,6 +465,83 @@
   // 12) 17-sep, Elena: (a) los rotulos "Tour de cafe" / "Eventos" junto a las
   //     ventanas de foto, como botones verdes; (b) huellas de conejo de fondo
   //     en esa seccion, que quedaba vacia a los lados.
+  // Rastro del conejo: puntos de paso segun la maqueta + un lazo, curva suave por ellos y
+  // un salto (dos patas traseras largas delante, dos delanteras pequenas detras) cada PASO px.
+  function dibujarHuellas(sec, svg) {
+    var o = sec.getBoundingClientRect();
+    var R = function (e) {
+      var q = e.getBoundingClientRect();
+      return { l: q.left - o.left, t: q.top - o.top, r: q.right - o.left, b: q.bottom - o.top,
+               cx: (q.left + q.right) / 2 - o.left, cy: (q.top + q.bottom) / 2 - o.top };
+    };
+    var btns = sec.querySelectorAll('.gg-card-btn > span'), wins = sec.querySelectorAll('.gg-card-win');
+    if (btns.length < 2 || wins.length < 2) return;
+    var b1 = R(btns[0]), b2 = R(btns[1]), w1 = R(wins[0]);
+    var W = o.width, H = o.height, movil = W < 600;
+    var esc = movil ? 0.7 : 0.85, PASO = movil ? 40 : 50, rad = movil ? 42 : 55;
+    var p = [], lazo;
+    if (b2.t < b1.b) {
+      // ordenador, en fila: sale del boton del tour hacia la derecha, lazo en el hueco de debajo
+      var mid = (b1.r + R(wins[1]).l) / 2;
+      p.push([b1.r + 16, b1.cy], [mid - 12, b1.cy + 34]);
+      lazo = [mid, b1.b + 14 + rad];
+      p.push.apply(p, circulo(lazo, rad));
+      p.push([lazo[0] - rad - 50, H - 34], [w1.r - 60, H - 30], [w1.l + 40, H - 28], [-30, H - 40]);
+    } else if (!movil) {
+      // tablet: como el dibujo de Elena. Derecha desde el boton del tour, baja por la derecha
+      // del boton de eventos y hace el lazo debajo
+      var x = Math.min(W - 60, b2.r + Math.max(60, (W - b2.r) / 2));
+      p.push([b1.r + 16, b1.cy], [b1.r + (W - b1.r) * 0.45, b1.cy + 40], [x, (b1.b + b2.t) / 2 + 20], [x - 10, b2.cy]);
+      lazo = [Math.min(W - rad - 20, x - 20), b2.b + 16 + rad];
+      p.push.apply(p, circulo(lazo, rad));
+      p.push([lazo[0] - rad - 60, H - 34], [b2.l - 40, H - 30], [-30, H - 40]);
+    } else {
+      // movil: las tarjetas ocupan todo el ancho; el rastro entra por la derecha en el hueco
+      // de debajo de la segunda tarjeta, hace el lazo y sale por la izquierda
+      var fondo = R(btns[1].closest('a') || btns[1]).b;
+      rad = 34;
+      lazo = [W * 0.62, fondo + 12 + rad];
+      p.push([W + 30, fondo + 20], [W * 0.62 + rad + 30, fondo + 16]);
+      p.push.apply(p, circulo(lazo, rad));
+      p.push([W * 0.62 - rad - 40, H - 22], [-30, H - 26]);
+    }
+    // curva Catmull-Rom abierta por los puntos, muestreada fina para medir longitudes
+    var fino = [];
+    for (var i = 0; i < p.length - 1; i++) {
+      var p0 = p[Math.max(0, i - 1)], p1 = p[i], p2 = p[i + 1], p3 = p[Math.min(p.length - 1, i + 2)];
+      for (var k = 0; k < 24; k++) {
+        var u = k / 24, u2 = u * u, u3 = u2 * u;
+        fino.push([0, 1].map(function (c) {
+          return 0.5 * (2 * p1[c] + (-p0[c] + p2[c]) * u + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * u2 +
+                 (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * u3);
+        }));
+      }
+    }
+    fino.push(p[p.length - 1]);
+    var g = '', recorrido = 0, sig = 10;
+    for (var j = 1; j < fino.length; j++) {
+      var a = fino[j - 1], c2 = fino[j], d = Math.hypot(c2[0] - a[0], c2[1] - a[1]);
+      recorrido += d;
+      if (recorrido < sig) continue;
+      sig += PASO;
+      if (c2[0] < -10 || c2[1] < -10 || c2[0] > W + 10 || c2[1] > H + 10) continue;
+      var ang = Math.atan2(c2[1] - a[1], c2[0] - a[0]) * 180 / Math.PI;
+      g += '<g transform="translate(' + c2[0].toFixed(1) + ' ' + c2[1].toFixed(1) + ') rotate(' + ang.toFixed(1) +
+           ') scale(' + esc + ')"><ellipse cx="14" cy="-9" rx="11" ry="4.2"/><ellipse cx="14" cy="9" rx="11" ry="4.2"/>' +
+           '<circle cx="-12" cy="-3" r="3.6"/><circle cx="-26" cy="4" r="3.6"/></g>';
+    }
+    svg.setAttribute('viewBox', '0 0 ' + Math.round(W) + ' ' + Math.round(H));
+    svg.innerHTML = g;
+  }
+  // lazo: vuelta entera en el sentido de las agujas del reloj empezando por arriba (se cruza al salir)
+  function circulo(c, r) {
+    var out = [];
+    for (var a = -90; a <= 270; a += 45) {
+      out.push([c[0] + r * Math.cos(a * Math.PI / 180), c[1] + r * Math.sin(a * Math.PI / 180)]);
+    }
+    return out;
+  }
+
   function initTarjetasYHuellas() {
     var wins = document.querySelectorAll('.gg-card-win');
     if (!wins.length) return;
@@ -465,21 +552,47 @@
     });
     if (sec && !sec.querySelector('.gg-huellas')) {
       sec.classList.add('gg-sec-huellas');
-      var base = (wins[0].querySelector('img').getAttribute('src') || '').split('custom/')[0];
-      var img = document.createElement('img');
-      img.className = 'gg-huellas';
-      img.src = base + 'custom/huellas-conejo.svg';
-      img.alt = '';
-      img.setAttribute('aria-hidden', 'true');
-      sec.insertBefore(img, sec.firstChild);
+      // (26-oct) Elena: "las huellas del conejito se pueden hacer formando un bucle" (dibujo en
+      // rojo: salen del boton del tour, van a la derecha, bajan y hacen un lazo abajo). Antes
+      // era una imagen fija estirada a la seccion (huellas-conejo.svg) y el rastro no se leia.
+      // Ahora el rastro se calcula con las posiciones reales de fotos y botones (ordenador:
+      // en fila; tablet y movil: una debajo de otra) y se redibuja al cambiar el tamano.
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'gg-huellas');
+      svg.setAttribute('aria-hidden', 'true');
+      sec.insertBefore(svg, sec.firstChild);
+      var dibujar = function () { dibujarHuellas(sec, svg); };
+      dibujar();
+      if (window.ResizeObserver) new ResizeObserver(function () {
+        clearTimeout(sec._ggHuellas); sec._ggHuellas = setTimeout(dibujar, 120);
+      }).observe(sec);
+      [].forEach.call(sec.querySelectorAll('img'), function (im) {
+        if (!im.complete) im.addEventListener('load', dibujar, { once: true });
+      });
     }
+  }
+
+  // 13) 26-oct, Elena: en ordenador faltaba el "papel pintado" en Experiencia (historia del
+  //     cafe con la mano de cerezas, "Fertile soils" / "From coffee cherry to gourmet product"
+  //     y las preguntas frecuentes): "hay que hacerlo igual que" en The Coffee Tour de la
+  //     portada, que es el dibujo de ramas pattern-06 repetido (css bloque 41).
+  function initPapelExperiencia() {
+    if (!document.querySelector('main img[src*="plantation-view"]')) return;   // solo Experiencia
+    var secciones = [];
+    ['plantation-view', 'finca-landscape', 'finca-plants'].forEach(function (nombre) {
+      var img = document.querySelector('main img[src*="' + nombre + '"]');
+      if (img && img.closest('section')) secciones.push(img.closest('section'));
+    });
+    var faq = document.querySelector('main section details');
+    if (faq) secciones.push(faq.closest('section'));
+    secciones.forEach(function (s) { s.classList.add('gg-papel'); });
   }
 
   function init() {
     initTema(); initBeansFoot(); initTarjetasYHuellas();
     initSteam(); initNews(); initIlustracion(); initBeansFade();
     initFotosExperiencia(); initFotosHistoria();
-    initSinGaleriaHome(); initNotaIdioma(); initMapa();
+    initSinGaleriaHome(); initNotaIdioma(); initMapa(); initPapelExperiencia();
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

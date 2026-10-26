@@ -825,3 +825,37 @@ main > section.gg-hero-zona .bg-gradient-to-b.from-black\/65 {
    corte vertical del original (hero-2026b-vert-*). El <picture> no debe crear caja:
    la foto sigue posicionada contra la seccion como antes. */
 picture.gg-hero-pic { display: contents; }
+
+/* 40) 26-oct, Elena: "quitar completamente la cascara de la primera pagina". Sin la banda
+   de granos, el degradado a NEGRO del final de la foto cortaba seco con el arena de la
+   ilustracion: ahora la foto funde a ese mismo arena. */
+main > section:has(img[src*="hero-2026"]) .bottom-0.bg-gradient-to-b {
+  height: 12% !important;
+  background-image: linear-gradient(to bottom, rgb(234 217 184 / 0) 0%, rgb(234 217 184 / .55) 55%, #ead9b8 100%) !important;
+}
+
+/* 41) 26-oct, Elena: el "papel pintado" de The Coffee Tour (portada: pattern-06 repetido al 10 %)
+   tambien en las secciones de Experiencia que lo tenian vacio. La clase la pone custom-2026.js
+   (initPapelExperiencia). El dibujo va detras del contenido: isolation + z-index -1. */
+main section.gg-papel { position: relative; isolation: isolate; }
+main section.gg-papel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("../_astro/pattern-06.BHblFF8e.svg") repeat;
+  opacity: .1;
+  pointer-events: none;
+}
+
+/* 42) 26-oct, Elena: huellas del conejo formando un BUCLE. El rastro ya no es una imagen
+   estirada: lo dibuja custom-2026.js (dibujarHuellas) a la medida real de la seccion, asi que
+   el svg ocupa la seccion entera sin deformar. Algo mas de aire abajo para que quepa el lazo. */
+.gg-sec-huellas { padding-bottom: 6rem !important; }
+svg.gg-huellas {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: #3d1e0e;
+  overflow: visible;
+}
