@@ -859,3 +859,14 @@ svg.gg-huellas {
   fill: #3d1e0e;
   overflow: visible;
 }
+
+/* 43) 28-oct, Elena: "la foto no tiene un buen encuadre". La portada seguia midiendo una
+   pantalla + la zona de fundido de la banda de granos (bloque 30), que ya no existe: en el
+   movil la foto se estiraba a una columna estrecha y la mitad de abajo era tierra. Ahora la
+   portada mide una pantalla (crece solo si el texto no cabe) y en el movil va su propio
+   corte (hero-2026g-movil-*, palmera alta y valle). */
+.gg-hero-zona {
+  --gg-zona: 0px;
+  min-height: 100svh !important;
+  padding-bottom: 0 !important;
+}
